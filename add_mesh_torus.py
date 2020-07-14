@@ -36,8 +36,7 @@ def add_torus(major_rad, minor_rad, major_seg, minor_seg, section_angle, section
 
     pi_2 = pi * 2.0
 
-    twist_min_step_angle = ((pi_2 / minor_seg) / major_seg) * section_twist
-    twist_min_step_angle = twist_min_step_angle * minor_seg
+    twist_min_step_angle = ((pi_2 / minor_seg) / major_seg) * minor_seg * section_twist
 	
     verts = []
     faces = []
