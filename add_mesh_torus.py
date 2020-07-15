@@ -37,7 +37,7 @@ def add_torus(major_rad, minor_rad, major_seg, minor_seg, section_angle, section
 
     pi_2 = pi * 2.0
 
-    twist_min_step_angle = ((pi_2 / minor_seg) / major_seg) * section_twist
+    twist_step_angle = ((pi_2 / minor_seg) / major_seg) * section_twist
     
     verts = []
     faces = []
@@ -45,7 +45,7 @@ def add_torus(major_rad, minor_rad, major_seg, minor_seg, section_angle, section
     tot_verts = major_seg * minor_seg
     for major_index in range(major_seg):
         matrix = Matrix.Rotation((major_index / major_seg) * pi_2, 3, 'Z')
-        major_twist_angle = major_index * twist_min_step_angle
+        major_twist_angle = major_index * twist_step_angle
         
         for minor_index in range(minor_seg):
             angle = pi_2 * minor_index / minor_seg + section_angle + major_twist_angle
