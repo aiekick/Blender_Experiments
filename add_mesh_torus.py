@@ -58,7 +58,7 @@ def add_torus(major_rad, minor_rad, major_seg, minor_seg, section_angle, section
 
             verts.extend(vec[:])
 
-			if minor_index + 1 == minor_seg:
+            if minor_index + 1 == minor_seg:
                 i2 = (major_index) * minor_seg
                 i3 = i1 + minor_seg
                 i4 = i2 + minor_seg
