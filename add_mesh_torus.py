@@ -19,6 +19,7 @@
 # <pep8-80 compliant>
 import bpy
 from bpy.types import Operator
+import logging
 
 from bpy.props import (
     BoolProperty,
@@ -36,8 +37,8 @@ def add_torus(major_rad, minor_rad, major_seg, minor_seg, section_angle, section
 
     pi_2 = pi * 2.0
 
-    twist_min_step_angle = ((pi_2 / minor_seg) / major_seg) * minor_seg * section_twist
-	
+    twist_min_step_angle = ((pi_2 / minor_seg) / major_seg) * section_twist
+    
     verts = []
     faces = []
     i1 = 0
@@ -57,7 +58,7 @@ def add_torus(major_rad, minor_rad, major_seg, minor_seg, section_angle, section
 
             verts.extend(vec[:])
 
-            if minor_index + 1 == minor_seg:
+			if minor_index + 1 == minor_seg:
                 i2 = (major_index) * minor_seg
                 i3 = i1 + minor_seg
                 i4 = i2 + minor_seg
@@ -67,12 +68,12 @@ def add_torus(major_rad, minor_rad, major_seg, minor_seg, section_angle, section
                 i4 = i3 + 1
 
             if i2 >= tot_verts:
-                i2 = i2 - tot_verts
+                i2 = (i2 - tot_verts + section_twist) % minor_seg
             if i3 >= tot_verts:
-                i3 = i3 - tot_verts
+                i3 = (i3 - tot_verts + section_twist) % minor_seg
             if i4 >= tot_verts:
-                i4 = i4 - tot_verts
-
+                i4 = (i4 - tot_verts + section_twist) % minor_seg
+            
             faces.extend([i1, i3, i4, i2])
 
             i1 += 1
