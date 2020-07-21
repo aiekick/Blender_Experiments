@@ -58,7 +58,7 @@ def add_torus(major_rad, minor_rad, major_seg, minor_seg, section_angle, section
 
             verts.extend(vec[:])
 
-            if minor_index + 1 == minor_seg:
+            if minor_seg > 2 and minor_index + 1 == minor_seg:
                 i2 = (major_index) * minor_seg
                 i3 = i1 + minor_seg
                 i4 = i2 + minor_seg
@@ -100,7 +100,6 @@ def add_uvs(mesh, minor_seg, major_seg):
     v_wrap = 1.0 - (v_step / 2.0)
 
     vertex_index = 0
-
     u_prev = u_init
     u_next = u_prev + u_step
     for _major_index in range(major_seg):
@@ -112,21 +111,37 @@ def add_uvs(mesh, minor_seg, major_seg):
             uv_data[loops[1]].uv = u_next, v_prev
             uv_data[loops[3]].uv = u_prev, v_next
             uv_data[loops[2]].uv = u_next, v_next
-
             if v_next > v_wrap:
                 v_prev = v_next - 1.0
             else:
                 v_prev = v_next
             v_next = v_prev + v_step
-
             vertex_index += 1
-
         if u_next > u_wrap:
             u_prev = u_next - 1.0
         else:
             u_prev = u_next
         u_next = u_prev + u_step
 
+def add_uvs_one_ribbon(mesh, minor_seg, major_seg, section_twist):
+    from math import fmod
+    mesh.uv_layers.new()
+    uv_data = mesh.uv_layers.active.data
+    polygons = mesh.polygons
+    count = major_seg * minor_seg
+    u_step = 1.0 / count
+    u_next = 0.0
+    u_prev = 0.0
+    for offset in range(minor_seg):
+        off = (offset * section_twist) % minor_seg
+        for idx in range(major_seg):
+            u_prev = u_next
+            u_next = u_prev + u_step 
+            loops = polygons[idx * minor_seg + off].loop_indices
+            uv_data[loops[0]].uv = u_prev, 0.0
+            uv_data[loops[1]].uv = u_next, 0.0
+            uv_data[loops[3]].uv = u_prev, 1.0
+            uv_data[loops[2]].uv = u_next, 1.0
 
 class AddTorus(Operator, object_utils.AddObjectHelper):
     """Construct a torus mesh"""
@@ -148,7 +163,7 @@ class AddTorus(Operator, object_utils.AddObjectHelper):
     minor_segments: IntProperty(
         name="Minor Segments",
         description="Number of segments for the minor ring of the torus",
-        min=3, max=256,
+        min=2, max=256,
         default=12,
     )
     section_angle: FloatProperty(
@@ -288,8 +303,8 @@ class AddTorus(Operator, object_utils.AddObjectHelper):
             self.minor_radius,
             self.major_segments,
             self.minor_segments,
-			self.section_angle,
-			self.section_twist,
+            self.section_angle,
+            self.section_twist,
         )
 
         mesh = bpy.data.meshes.new(data_("Torus"))
@@ -307,8 +322,11 @@ class AddTorus(Operator, object_utils.AddObjectHelper):
         mesh.loops.foreach_set("vertex_index", faces)
 
         if self.generate_uvs:
-            add_uvs(mesh, self.minor_segments, self.major_segments)
-
+            if self.section_twist % self.minor_segments == 0:
+                add_uvs(mesh, self.minor_segments, self.major_segments)
+            else:
+                add_uvs_one_ribbon(mesh, self.minor_segments, self.major_segments, self.section_twist)
+        
         mesh.update()
 
         object_utils.object_data_add(context, mesh, operator=self)
